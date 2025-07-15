@@ -1,5 +1,6 @@
 special_chars = ['@', '!', '#', '$', '%', '¨', '&', '*', '(', ')', '-', '=', '+', '_']
 
+
 while True:
     try:
         password = input("\nEnter password (or type 'exit' to exit): ")
@@ -14,51 +15,85 @@ while True:
 
         strength = 0
 
+        length = len(password)
+
+        has_alpha = any(c.isalpha() for c in password)
+        has_specialc = any(c in special_chars for c in password)
+        has_upper = any(c.isupper() for c in password)
+        has_lower = any(c.islower() for c in password)
+        has_digit = any(c.isdigit() for c in password)
+        has_length12 = length >= 12
+        has_length8 = 8 <= length < 12
+
         feedback = []
 
-        if any(char in special_chars for char in password):
-            strength += 20
+        #Verifica se possúi letras
+        match(has_alpha):
 
-        else:
-            feedback.append("Sua senha não possui caracteres especiais")
-    
-        if any(char.isalpha() for char in password):
+            case (True):
+                strength += 10
 
-            if any(char.isupper() for char in password):
-                strength += 20
-            
-            else:
-                feedback.append("Sua senha não possúi letras maiúsculas")
+            case (False):
+                feedback.append("Sua senha não possúi letras")
         
-            if any(c.islower() for c in password):
-                strength += 20
+        #Verifica se possúi letras maiúsculas
+        match(has_upper):
+
+            case(True):
+                strength += 30
+
+            case(False):
+                feedback.append("Sua senha não possúi letras maiúsculas")
+
+        #Verifica se possúi letras minúsculas
+        match(has_lower):
             
-            else:
+            case(True):
+                strength += 10
+
+            case(False):
                 feedback.append("Sua senha não possúi letras minúsculas")
-                
-        else:
-            feedback.append("Sua senha não possúi letras maísculas e/ou minúsculas")
 
-        if any(char.isdigit() for char in password):
-            strength += 20
+        #Verifica se possúi caracter especiais
+        match(has_specialc):
 
-        else:
-            feedback.append("Sua senha não possúi números")
+            case(True):
+                strength += 30
 
-        if len(password) >= 12:
-            strength += 20
+            case(False):
+                feedback.append("Sua senha não possúi caracteres especiais")
 
-        elif len(password) >= 8:
-            strength += 10
-            feedback.append("Sua senha possui tamanho de 8 ou mais caracteres, mas poderá melhorar se tiver no minimo 12")
+        #Verifica se possúi digitos
+        match(has_digit):
 
-        else:
-            feedback.append("Sua senha não possúi o tamanho mínimo de 8 caracteres, adicione caracteres para chegar a 8 ou 12 para ficar melhor")
+            case(True):
+                strength += 10
 
-        print(f"Password strength: {strength}/100")
+            case(False):
+                feedback.append("Sua senha não possúi digitos")
+
+        #Verifica o tamanho
+        match (has_length12, has_length8):
+
+            case (False, False):
+                print("Sua senha não possúi tamanho minímo de 8 caracteres")
+
+            case (False, True):
+                strength += 5
+                print("Sua senha não possúi o tamanho recomendado de 12 caracteres")
+            
+            case (True, False):
+                strength += 10
+        
+        match(has_alpha, has_digit, has_lower, has_upper, has_specialc, has_length12):
+
+            case(True, True, True, True, True, True):
+                feedback.append("Nenhuma alteração necessária")
 
         for item in feedback:
             print(item)
+
+        print(f"Password strength: {strength}/100")
     except Exception as e:
         print(f"Erro: {e}")
 
