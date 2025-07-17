@@ -1,101 +1,95 @@
 special_chars = ['@', '!', '#', '$', '%', '¨', '&', '*', '(', ')', '-', '=', '+', '_']
 
+print("Loading password dictionary, please wait...")
+try:
+    with open("passwords_list.txt", "r", encoding="latin-1") as passwords:
+        wordlist = set(line.strip() for line in passwords)
+except FileNotFoundError:
+    print("⚠️ Wordlist file not found. Continuing without it.")
+    wordlist = set()
 
 while True:
-    try:
-        password = input("\nEnter password (or type 'exit' to exit): ")
+    password = input("\nEnter password (or type 'exit' to quit): ")
 
-        if password.lower() == 'exit':
-            print("\nExiting the program.")
-            break
+    if password.lower() == 'exit':
+        print("\nExiting the program.")
+        break
 
-        if not password:
-            print("\nNo password was entered.")
-            continue
+    if not password:
+        print("\nNo password was entered.")
+        continue
 
-        strength = 0
+    feedback = []
+    strength = 0
 
-        length = len(password)
+    is_in_wordlist = password in wordlist
 
-        has_alpha = any(c.isalpha() for c in password)
-        has_specialc = any(c in special_chars for c in password)
-        has_upper = any(c.isupper() for c in password)
-        has_lower = any(c.islower() for c in password)
-        has_digit = any(c.isdigit() for c in password)
-        has_length12 = length >= 12
-        has_length8 = 8 <= length < 12
+    match is_in_wordlist:
+        case True:
+            feedback.append("❌ Your password was found in a list of common passwords. Please choose another one.")
 
-        feedback = []
+        case False:
+            length = len(password)
 
-        #Verifica se possúi letras
-        match(has_alpha):
+            has_alpha = any(c.isalpha() for c in password)
+            has_special = any(c in special_chars for c in password)
+            has_upper = any(c.isupper() for c in password)
+            has_lower = any(c.islower() for c in password)
+            has_digit = any(c.isdigit() for c in password)
+            has_length12 = length >= 12
+            has_length8 = 8 <= length < 12
 
-            case (True):
-                strength += 10
+            # Check for alphabetic characters
+            match has_alpha:
+                case True:
+                    strength += 10
+                case False:
+                    feedback.append("⚠️ Your password does not contain letters.")
 
-            case (False):
-                feedback.append("Sua senha não possúi letras")
-        
-        #Verifica se possúi letras maiúsculas
-        match(has_upper):
+            # Check for uppercase letters
+            match has_upper:
+                case True:
+                    strength += 30
+                case False:
+                    feedback.append("⚠️ Your password does not contain uppercase letters.")
 
-            case(True):
-                strength += 30
+            # Check for lowercase letters
+            match has_lower:
+                case True:
+                    strength += 10
+                case False:
+                    feedback.append("⚠️ Your password does not contain lowercase letters.")
 
-            case(False):
-                feedback.append("Sua senha não possúi letras maiúsculas")
+            # Check for special characters
+            match has_special:
+                case True:
+                    strength += 30
+                case False:
+                    feedback.append("⚠️ Your password does not contain special characters.")
 
-        #Verifica se possúi letras minúsculas
-        match(has_lower):
-            
-            case(True):
-                strength += 10
+            # Check for digits
+            match has_digit:
+                case True:
+                    strength += 10
+                case False:
+                    feedback.append("⚠️ Your password does not contain digits.")
 
-            case(False):
-                feedback.append("Sua senha não possúi letras minúsculas")
+            # Evaluate password length
+            match (has_length12, has_length8):
+                case (False, False):
+                    print("❌ Your password is shorter than the minimum of 8 characters.")
+                case (False, True):
+                    strength += 5
+                    print("⚠️ Your password does not meet the recommended length of 12 characters.")
+                case (True, False):
+                    strength += 10
 
-        #Verifica se possúi caracter especiais
-        match(has_specialc):
+            # If all criteria met
+            match (has_alpha, has_digit, has_lower, has_upper, has_special, has_length12):
+                case (True, True, True, True, True, True):
+                    feedback.append("✅ No changes necessary. Strong password.")
 
-            case(True):
-                strength += 30
+    for item in feedback:
+        print(item)
 
-            case(False):
-                feedback.append("Sua senha não possúi caracteres especiais")
-
-        #Verifica se possúi digitos
-        match(has_digit):
-
-            case(True):
-                strength += 10
-
-            case(False):
-                feedback.append("Sua senha não possúi digitos")
-
-        #Verifica o tamanho
-        match (has_length12, has_length8):
-
-            case (False, False):
-                print("Sua senha não possúi tamanho minímo de 8 caracteres")
-
-            case (False, True):
-                strength += 5
-                print("Sua senha não possúi o tamanho recomendado de 12 caracteres")
-            
-            case (True, False):
-                strength += 10
-        
-        match(has_alpha, has_digit, has_lower, has_upper, has_specialc, has_length12):
-
-            case(True, True, True, True, True, True):
-                feedback.append("Nenhuma alteração necessária")
-
-        for item in feedback:
-            print(item)
-
-        print(f"Password strength: {strength}/100")
-    except Exception as e:
-        print(f"Erro: {e}")
-
-
-
+    print(f"\n🔐 Password strength: {strength}/100")
